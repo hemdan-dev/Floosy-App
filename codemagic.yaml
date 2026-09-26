@@ -1,0 +1,65 @@
+# CI workflow for Floosy iOS TestFlight distribution.
+#
+# Required environment variables (add as Secure variables in
+# codemagic.io -> App settings -> Environment variables):
+#
+#   GOOGLE_IOS_CLIENT_ID     iOS OAuth client ID (...apps.googleusercontent.com)
+#   GOOGLE_SERVER_CLIENT_ID  Web application OAuth client ID
+#   APP_STORE_CONNECT_PRIVATE_KEY       full contents of the App Store Connect .p8 key
+#   APP_STORE_CONNECT_KEY_IDENTIFIER    Key ID of that key
+#   APP_STORE_CONNECT_ISSUER_ID         Issuer ID of that key
+#
+# The App Store Connect API key must also be connected in Codemagic under
+# App settings -> Integrations -> App Store Connect so that net.floosy.app is
+# signed automatically (including the app-group entitlement).
+workflows:
+  ios-testflight:
+    name: Floosy iOS TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: net.floosy.app
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: false
+    scripts:
+      - name: Flutter pub get
+        script: flutter pub get
+      - name: Run tests
+        script: flutter test
+      - name: Inject Google sign-in URL scheme
+        script: |
+          if [ -n "$GOOGLE_IOS_CLIENT_ID" ]; then
+            base="${GOOGLE_IOS_CLIENT_ID%.apps.googleusercontent.com}"
+            /usr/libexec/PlistBuddy -c \
+              "Set :CFBundleURLTypes:1:CFBundleURLSchemes:0 com.googleusercontent.apps.$base" \
+              ios/Runner/Info.plist
+            echo "Injected Google URL scheme com.googleusercontent.apps.$base"
+          else
+            echo "GOOGLE_IOS_CLIENT_ID is not set; Google sign-in will not work in this build."
+          fi
+      - name: Apply automatic code signing
+        script: xcode-project use-profiles
+      - name: Build signed IPA
+        script: |
+          flutter build ipa --release \
+            --export-method app-store \
+            --build-number=$PROJECT_BUILD_NUMBER \
+            --dart-define=GOOGLE_IOS_CLIENT_ID="$GOOGLE_IOS_CLIENT_ID" \
+            --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/ios/archive/*.xcarchive
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true

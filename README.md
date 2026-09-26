@@ -37,7 +37,33 @@ flutter run
 ```
 
 Android builds also require Android SDK command-line tools and accepted SDK
-licenses. iOS builds and signing require macOS with Xcode.
+licenses. iOS builds and signing require macOS with Xcode, or the included
+Codemagic workflow (see below). iOS requires iOS 14 or newer.
+
+## TestFlight distribution via Codemagic
+
+`codemagic.yaml` builds a signed App Store IPA on every push to `main` and
+uploads it to TestFlight. One-time setup:
+
+1. Join the Apple Developer Program and create an App Store Connect API key
+   (Users and Access → Integrations → Team Keys, Admin role).
+2. Connect that key in Codemagic under App settings → Integrations → App
+   Store Connect so `net.floosy.app` is signed automatically; the app-group
+   entitlement in `ios/Runner/Runner.entitlements` is registered on the App ID
+   for you.
+3. Add five Secure environment variables in Codemagic app settings:
+   `GOOGLE_IOS_CLIENT_ID`, `GOOGLE_SERVER_CLIENT_ID`,
+   `APP_STORE_CONNECT_PRIVATE_KEY` (full `.p8` file contents pasted as text),
+   `APP_STORE_CONNECT_KEY_IDENTIFIER`, and `APP_STORE_CONNECT_ISSUER_ID`.
+
+The workflow injects the reversed iOS client ID into `ios/Runner/Info.plist`
+at build time, runs `flutter test`, then builds and publishes. Internal
+TestFlight testers receive builds without review; external groups need beta
+review, a privacy-policy URL, and export-compliance answers.
+
+The home-screen widget source in `ios/FloosyWidget/` is not yet wired into
+the Xcode project as an extension target, so current builds ship without the
+widget. Add the target in Xcode on a Mac to enable it.
 
 ## Google Drive setup
 

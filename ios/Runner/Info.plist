@@ -40,6 +40,18 @@
 				<string>floosy</string>
 			</array>
 		</dict>
+		<!-- Google sign-in callback: the reversed iOS OAuth client ID
+		     (com.googleusercontent.apps.<client-id-number>). Codemagic replaces
+		     the placeholder at build time from GOOGLE_IOS_CLIENT_ID; replace it
+		     manually for local macOS builds. -->
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.REPLACE_WITH_REVERSED_IOS_CLIENT_ID</string>
+			</array>
+		</dict>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
