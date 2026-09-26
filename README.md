@@ -38,7 +38,7 @@ flutter run
 
 Android builds also require Android SDK command-line tools and accepted SDK
 licenses. iOS builds and signing require macOS with Xcode, or the included
-Codemagic workflow (see below). iOS requires iOS 14 or newer.
+Codemagic workflow (see below). iOS requires iOS 15 or newer.
 
 ## TestFlight distribution via Codemagic
 
@@ -48,10 +48,14 @@ uploads it to TestFlight. One-time setup:
 1. Join the Apple Developer Program and create an App Store Connect API key
    (Users and Access → Integrations → Team Keys, Admin role).
 2. Connect that key in Codemagic under App settings → Integrations → App
-   Store Connect so `net.floosy.app` is signed automatically; the app-group
-   entitlement in `ios/Runner/Runner.entitlements` is registered on the App ID
-   for you.
-3. Add five Secure environment variables in Codemagic app settings:
+   Store Connect so `net.floosy.app` is signed automatically.
+3. In the Apple Developer portal (Certificates, Identifiers & Profiles →
+   Identifiers → `net.floosy.app`), enable the **App Groups** capability and
+   select `group.net.floosy.app`, then regenerate — or simply delete — the
+   `ios_app_store` provisioning profile for the App ID so the next build
+   fetches a profile that includes the capability. `ios/Runner/Runner.entitlements`
+   uses the app group, so signing fails without this step.
+4. Add five Secure environment variables in Codemagic app settings:
    `GOOGLE_IOS_CLIENT_ID`, `GOOGLE_SERVER_CLIENT_ID`,
    `APP_STORE_CONNECT_PRIVATE_KEY` (full `.p8` file contents pasted as text),
    `APP_STORE_CONNECT_KEY_IDENTIFIER`, and `APP_STORE_CONNECT_ISSUER_ID`.

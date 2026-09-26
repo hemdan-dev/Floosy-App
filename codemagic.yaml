@@ -36,15 +36,26 @@ workflows:
         script: flutter test
       - name: Inject Google sign-in URL scheme
         script: |
-          if [ -n "$GOOGLE_IOS_CLIENT_ID" ]; then
-            base="${GOOGLE_IOS_CLIENT_ID%.apps.googleusercontent.com}"
-            /usr/libexec/PlistBuddy -c \
-              "Set :CFBundleURLTypes:1:CFBundleURLSchemes:0 com.googleusercontent.apps.$base" \
-              ios/Runner/Info.plist
-            echo "Injected Google URL scheme com.googleusercontent.apps.$base"
-          else
-            echo "GOOGLE_IOS_CLIENT_ID is not set; Google sign-in will not work in this build."
+          if [ -z "$GOOGLE_IOS_CLIENT_ID" ] || [ -z "$GOOGLE_SERVER_CLIENT_ID" ]; then
+            echo "GOOGLE_IOS_CLIENT_ID and GOOGLE_SERVER_CLIENT_ID must be set"
+            echo "in Codemagic: App settings -> Environment variables (Secure)."
+            echo "Values are the iOS and Web application OAuth client IDs from"
+            echo "Google Cloud Console -> APIs & Services -> Credentials."
+            exit 1
           fi
+          case "$GOOGLE_IOS_CLIENT_ID" in
+            *.apps.googleusercontent.com) ;;
+            *)
+              echo "GOOGLE_IOS_CLIENT_ID must be the full iOS client ID ending"
+              echo "in .apps.googleusercontent.com (got: $GOOGLE_IOS_CLIENT_ID)"
+              exit 1
+              ;;
+          esac
+          base="${GOOGLE_IOS_CLIENT_ID%.apps.googleusercontent.com}"
+          /usr/libexec/PlistBuddy -c \
+            "Set :CFBundleURLTypes:1:CFBundleURLSchemes:0 com.googleusercontent.apps.$base" \
+            ios/Runner/Info.plist
+          echo "Injected Google URL scheme: com.googleusercontent.apps.$base"
       - name: Apply automatic code signing
         script: xcode-project use-profiles
       - name: Build signed IPA
@@ -54,6 +65,19 @@ workflows:
             --build-number=$PROJECT_BUILD_NUMBER \
             --dart-define=GOOGLE_IOS_CLIENT_ID="$GOOGLE_IOS_CLIENT_ID" \
             --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID"
+      - name: Verify Google URL scheme inside the built archive
+        script: |
+          app_plist=$(find build/ios/archive -name Info.plist -path "*Runner.app*" | head -1)
+          scheme=$(/usr/libexec/PlistBuddy -c "Print :CFBundleURLTypes:1:CFBundleURLSchemes:0" "$app_plist")
+          case "$scheme" in
+            com.googleusercontent.apps.*REPLACE*|"")
+              echo "Google URL scheme was not injected into the built app: '$scheme'"
+              exit 1
+              ;;
+            *)
+              echo "Archive carries Google URL scheme: $scheme"
+              ;;
+          esac
     artifacts:
       - build/ios/ipa/*.ipa
       - build/ios/archive/*.xcarchive

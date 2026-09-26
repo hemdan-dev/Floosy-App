@@ -1,7 +1,7 @@
-# iOS 14 is the floor: workmanager_apple 0.9.6 requires it, and the widget
-# extension uses WidgetKit (iOS 14+). FloosyShortcuts.swift is guarded with
-# @available(iOS 16.0, *) for the App Intents APIs.
-platform :ios, '14.0'
+# iOS 15: App Store Connect rejects iOS 14 targets from April 2027 (error
+# 90068). Plugin floor is 14 (workmanager_apple 0.9.6); FloosyShortcuts.swift
+# is guarded with @available(iOS 16.0, *) for the App Intents APIs.
+platform :ios, '15.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
