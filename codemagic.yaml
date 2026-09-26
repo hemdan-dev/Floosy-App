@@ -56,6 +56,11 @@ workflows:
             "Set :CFBundleURLTypes:1:CFBundleURLSchemes:0 com.googleusercontent.apps.$base" \
             ios/Runner/Info.plist
           echo "Injected Google URL scheme: com.googleusercontent.apps.$base"
+          /usr/libexec/PlistBuddy -c "Add :GIDClientID string $GOOGLE_IOS_CLIENT_ID" ios/Runner/Info.plist 2>/dev/null \
+            || /usr/libexec/PlistBuddy -c "Set :GIDClientID $GOOGLE_IOS_CLIENT_ID" ios/Runner/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :GIDServerClientID string $GOOGLE_SERVER_CLIENT_ID" ios/Runner/Info.plist 2>/dev/null \
+            || /usr/libexec/PlistBuddy -c "Set :GIDServerClientID $GOOGLE_SERVER_CLIENT_ID" ios/Runner/Info.plist
+          echo "Injected GIDClientID and GIDServerClientID into Info.plist"
       - name: Apply automatic code signing
         script: xcode-project use-profiles
       - name: Build signed IPA
@@ -65,7 +70,7 @@ workflows:
             --build-number=$PROJECT_BUILD_NUMBER \
             --dart-define=GOOGLE_IOS_CLIENT_ID="$GOOGLE_IOS_CLIENT_ID" \
             --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID"
-      - name: Verify Google URL scheme inside the built archive
+      - name: Verify Google config inside the built archive
         script: |
           app_plist=$(find build/ios/archive -name Info.plist -path "*Runner.app*" | head -1)
           scheme=$(/usr/libexec/PlistBuddy -c "Print :CFBundleURLTypes:1:CFBundleURLSchemes:0" "$app_plist")
@@ -76,6 +81,16 @@ workflows:
               ;;
             *)
               echo "Archive carries Google URL scheme: $scheme"
+              ;;
+          esac
+          gid=$(/usr/libexec/PlistBuddy -c "Print :GIDClientID" "$app_plist")
+          case "$gid" in
+            *.apps.googleusercontent.com)
+              echo "Archive carries GIDClientID: $gid"
+              ;;
+            *)
+              echo "GIDClientID missing from built app: '$gid'"
+              exit 1
               ;;
           esac
     artifacts:

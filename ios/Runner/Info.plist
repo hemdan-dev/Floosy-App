@@ -7,6 +7,12 @@
 	     does SHA hashing for fingerprints, which is not encryption. -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- Native Google Sign-In configuration. The iOS OAuth client ID for
+	     net.floosy.app; not a secret — OAuth client IDs ship inside apps.
+	     Codemagic rewrites this at build time from GOOGLE_IOS_CLIENT_ID,
+	     and GIDServerClientID from GOOGLE_SERVER_CLIENT_ID. -->
+	<key>GIDClientID</key>
+	<string>452633825081-regt7on4k4ihcv3rcn60044q9dhd6750.apps.googleusercontent.com</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
