@@ -33,15 +33,27 @@ class OpenAiService implements AiGateway {
         data: {
           'model': 'gpt-4o-mini',
           'store': false,
-          'max_output_tokens': 8,
+          'max_output_tokens': 16,
           'input': 'Reply with OK.',
         },
       );
       return true;
     } on DioException catch (error) {
       if (error.response?.statusCode == 401) return false;
-      rethrow;
+      throw StateError('OpenAI test request failed: ${_apiMessage(error)}');
     }
+  }
+
+  static String _apiMessage(DioException error) {
+    final data = error.response?.data;
+    if (data is Map) {
+      final apiError = data['error'];
+      if (apiError is Map) {
+        final message = apiError['message'];
+        if (message is String && message.isNotEmpty) return message;
+      }
+    }
+    return error.message ?? 'network error';
   }
 
   @override
