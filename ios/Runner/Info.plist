@@ -2,6 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Export compliance: Floosy uses only exempt encryption — standard
+	     HTTPS via OS frameworks (OpenAI, Google APIs). The crypto package
+	     does SHA hashing for fingerprints, which is not encryption. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -40,18 +45,19 @@
 				<string>floosy</string>
 			</array>
 		</dict>
-		<!-- Google sign-in callback: the reversed iOS OAuth client ID
-		     (com.googleusercontent.apps.<client-id-number>). Codemagic replaces
-		     the placeholder at build time from GOOGLE_IOS_CLIENT_ID; replace it
-		     manually for local macOS builds. -->
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.452633825081-regt7on4k4ihcv3rcn60044q9dhd6750.apps.googleusercontent.com</string>
-			</array>
-		</dict>
+			<!-- Google sign-in callback: the reversed iOS OAuth client ID,
+			     i.e. com.googleusercontent.apps.<id-number> with the
+			     .apps.googleusercontent.com suffix removed. Codemagic
+			     rewrites this value at build time from
+			     GOOGLE_IOS_CLIENT_ID; keep it correct for local builds. -->
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.452633825081-regt7on4k4ihcv3rcn60044q9dhd6750</string>
+				</array>
+			</dict>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
