@@ -11,7 +11,9 @@
 #
 # The App Store Connect API key must also be connected in Codemagic under
 # App settings -> Integrations -> App Store Connect so that net.floosy.app is
-# signed automatically (including the app-group entitlement).
+# signed automatically (including the app-group entitlement). The Apple
+# Developer account must contain both net.floosy.app and the widget extension
+# ID net.floosy.app.FloosyWidget, with group.net.floosy.app enabled on both.
 workflows:
   ios-testflight:
     name: Floosy iOS TestFlight
@@ -72,7 +74,12 @@ workflows:
             --dart-define=GOOGLE_SERVER_CLIENT_ID="$GOOGLE_SERVER_CLIENT_ID"
       - name: Verify Google config inside the built archive
         script: |
-          app_plist=$(find build/ios/archive -name Info.plist -path "*Runner.app*" | head -1)
+          app_path=$(find build/ios/archive -type d -name Runner.app | head -1)
+          app_plist="$app_path/Info.plist"
+          if [ ! -f "$app_plist" ]; then
+            echo "Runner.app/Info.plist is missing from the archive"
+            exit 1
+          fi
           scheme=$(/usr/libexec/PlistBuddy -c "Print :CFBundleURLTypes:1:CFBundleURLSchemes:0" "$app_plist")
           case "$scheme" in
             com.googleusercontent.apps.*REPLACE*|"")
@@ -93,6 +100,26 @@ workflows:
               exit 1
               ;;
           esac
+          widget_plist="$app_path/PlugIns/FloosyWidget.appex/Info.plist"
+          if [ ! -f "$widget_plist" ]; then
+            echo "FloosyWidget.appex is missing from the archived app"
+            exit 1
+          fi
+          widget_id=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$widget_plist")
+          if [ "$widget_id" != "net.floosy.app.FloosyWidget" ]; then
+            echo "Unexpected widget bundle identifier: '$widget_id'"
+            exit 1
+          fi
+          echo "Archive embeds signed widget extension: $widget_id"
+          for privacy_manifest in \
+            "$app_path/PrivacyInfo.xcprivacy" \
+            "$app_path/PlugIns/FloosyWidget.appex/PrivacyInfo.xcprivacy"; do
+            if [ ! -f "$privacy_manifest" ]; then
+              echo "Required Apple privacy manifest is missing: $privacy_manifest"
+              exit 1
+            fi
+          done
+          echo "Archive contains app and widget privacy manifests"
     artifacts:
       - build/ios/ipa/*.ipa
       - build/ios/archive/*.xcarchive

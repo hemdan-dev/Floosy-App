@@ -49,12 +49,12 @@ uploads it to TestFlight. One-time setup:
    (Users and Access → Integrations → Team Keys, Admin role).
 2. Connect that key in Codemagic under App settings → Integrations → App
    Store Connect so `net.floosy.app` is signed automatically.
-3. In the Apple Developer portal (Certificates, Identifiers & Profiles →
-   Identifiers → `net.floosy.app`), enable the **App Groups** capability and
-   select `group.net.floosy.app`, then regenerate — or simply delete — the
-   `ios_app_store` provisioning profile for the App ID so the next build
-   fetches a profile that includes the capability. `ios/Runner/Runner.entitlements`
-   uses the app group, so signing fails without this step.
+3. In the Apple Developer portal, register both `net.floosy.app` and the widget
+   extension `net.floosy.app.FloosyWidget`. Enable **App Groups** on both IDs,
+   select `group.net.floosy.app`, and refresh their App Store provisioning
+   profiles. The app and extension entitlements both use this group, so signing
+   fails if either profile lacks it. Codemagic’s `net.floosy.app` signing match
+   also fetches profiles for matching `net.floosy.app.*` extensions.
 4. Add five Secure environment variables in Codemagic app settings:
    `GOOGLE_IOS_CLIENT_ID`, `GOOGLE_SERVER_CLIENT_ID`,
    `APP_STORE_CONNECT_PRIVATE_KEY` (full `.p8` file contents pasted as text),
@@ -65,9 +65,10 @@ at build time, runs `flutter test`, then builds and publishes. Internal
 TestFlight testers receive builds without review; external groups need beta
 review, a privacy-policy URL, and export-compliance answers.
 
-The home-screen widget source in `ios/FloosyWidget/` is not yet wired into
-the Xcode project as an extension target, so current builds ship without the
-widget. Add the target in Xcode on a Mac to enable it.
+The Xcode project embeds `ios/FloosyWidget/` as a signed WidgetKit extension.
+Codemagic’s archive verification fails early if the `.appex` is missing or has
+the wrong bundle identifier. Both Apple executables also embed a
+`PrivacyInfo.xcprivacy` manifest for their approved UserDefaults usage.
 
 ## Google Drive setup
 

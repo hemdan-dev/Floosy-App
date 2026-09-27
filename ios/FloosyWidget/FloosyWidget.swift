@@ -49,11 +49,21 @@ struct FloosyWidgetView: View {
       .font(.caption2)
       .foregroundStyle(.white.opacity(0.9))
     }
-    .containerBackground(
-      LinearGradient(colors: [Color(red: 0.05, green: 0.41, blue: 0.31), Color(red: 0.11, green: 0.59, blue: 0.44)], startPoint: .topLeading, endPoint: .bottomTrailing),
-      for: .widget
+    .floosyWidgetBackground(
+      LinearGradient(colors: [Color(red: 0.05, green: 0.41, blue: 0.31), Color(red: 0.11, green: 0.59, blue: 0.44)], startPoint: .topLeading, endPoint: .bottomTrailing)
     )
     .widgetURL(URL(string: "floosy://overview"))
+  }
+}
+
+private extension View {
+  @ViewBuilder
+  func floosyWidgetBackground<Background: View>(_ content: Background) -> some View {
+    if #available(iOSApplicationExtension 17.0, *) {
+      containerBackground(for: .widget) { content }
+    } else {
+      background(content)
+    }
   }
 }
 
