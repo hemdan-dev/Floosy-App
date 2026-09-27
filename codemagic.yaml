@@ -111,6 +111,15 @@ workflows:
             exit 1
           fi
           echo "Archive embeds signed widget extension: $widget_id"
+          app_version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$app_plist")
+          app_build=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$app_plist")
+          widget_version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$widget_plist")
+          widget_build=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$widget_plist")
+          if [ "$widget_version" != "$app_version" ] || [ "$widget_build" != "$app_build" ]; then
+            echo "Widget version $widget_version ($widget_build) does not match app version $app_version ($app_build)"
+            exit 1
+          fi
+          echo "Widget version matches app version: $app_version ($app_build)"
           for privacy_manifest in \
             "$app_path/PrivacyInfo.xcprivacy" \
             "$app_path/PlugIns/FloosyWidget.appex/PrivacyInfo.xcprivacy"; do

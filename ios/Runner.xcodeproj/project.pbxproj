@@ -79,6 +79,7 @@
 		F20000000000000000000104 /* FloosyWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FloosyWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		F30000000000000000000101 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F30000000000000000000102 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		F40000000000000000000101 /* FloosyWidget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = FloosyWidget.xcconfig; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
@@ -172,6 +173,7 @@
 				F20000000000000000000102 /* Info.plist */,
 				F20000000000000000000103 /* FloosyWidget.entitlements */,
 				F30000000000000000000102 /* PrivacyInfo.xcprivacy */,
+				F40000000000000000000101 /* FloosyWidget.xcconfig */,
 			);
 			path = FloosyWidget;
 			sourceTree = "<group>";
@@ -684,7 +686,7 @@
 		};
 		F20000000000000000000A01 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 9740EEB21CF90195004384FC /* Debug.xcconfig */;
+			baseConfigurationReference = F40000000000000000000101 /* FloosyWidget.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = FloosyWidget/FloosyWidget.entitlements;
@@ -711,7 +713,7 @@
 		};
 		F20000000000000000000A02 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
+			baseConfigurationReference = F40000000000000000000101 /* FloosyWidget.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = FloosyWidget/FloosyWidget.entitlements;
@@ -736,7 +738,7 @@
 		};
 		F20000000000000000000A03 /* Profile */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
+			baseConfigurationReference = F40000000000000000000101 /* FloosyWidget.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = FloosyWidget/FloosyWidget.entitlements;

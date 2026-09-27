@@ -1,0 +1,4 @@
+// Keep the extension version aligned with the containing Flutter app without
+// inheriting Runner's CocoaPods/Flutter linker settings. A WidgetKit extension
+// is native Swift and must not link the Flutter plugin graph.
+#include "../Flutter/Generated.xcconfig"
