@@ -3,6 +3,7 @@ import UIKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+  private let appGroup = "group.net.floosy.app"
   private let captureKey = "floosy_pending_captures"
 
   override func application(
@@ -27,8 +28,16 @@ import UIKit
         result([])
         return
       }
-      let values = UserDefaults.standard.array(forKey: self.captureKey) ?? []
-      UserDefaults.standard.set([], forKey: self.captureKey)
+      let sharedDefaults = UserDefaults(suiteName: self.appGroup)
+      var values = sharedDefaults?.array(forKey: self.captureKey) ?? []
+
+      // Import anything queued by builds that used the app-only defaults
+      // container before captures moved to the shared App Group.
+      let legacyValues = UserDefaults.standard.array(forKey: self.captureKey) ?? []
+      values.append(contentsOf: legacyValues)
+
+      sharedDefaults?.removeObject(forKey: self.captureKey)
+      UserDefaults.standard.removeObject(forKey: self.captureKey)
       result(values)
     }
   }

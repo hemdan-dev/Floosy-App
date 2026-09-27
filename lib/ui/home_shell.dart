@@ -30,19 +30,18 @@ class HomeShell extends ConsumerStatefulWidget {
   ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends ConsumerState<HomeShell> {
+class _HomeShellState extends ConsumerState<HomeShell>
+    with WidgetsBindingObserver {
   int _index = 0;
+  bool _captureIngestionRunning = false;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     Future<void>(() async {
-      try {
-        await ref.read(captureServiceProvider).ingestPlatformCaptures();
-      } catch (_) {
-        // Platform capture remains optional when permission is unavailable.
-      }
+      await _ingestCapturesAndOpenReview();
       try {
         final drive = ref.read(driveSyncProvider);
         await drive.initialize();
@@ -81,8 +80,46 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _connectivitySubscription?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_ingestCapturesAndOpenReview());
+    }
+  }
+
+  Future<void> _ingestCapturesAndOpenReview() async {
+    if (_captureIngestionRunning) return;
+    _captureIngestionRunning = true;
+    try {
+      final count = await ref
+          .read(captureServiceProvider)
+          .ingestPlatformCaptures(retryOnEmpty: true);
+      if (count == 0 || !mounted) return;
+      setState(() => _index = 2);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.maybeOf(context)
+          ?..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                count == 1
+                    ? 'SMS captured. Review it below.'
+                    : '$count SMS messages captured. Review them below.',
+              ),
+            ),
+          );
+      });
+    } catch (_) {
+      // Platform capture remains optional and is retried on the next resume.
+    } finally {
+      _captureIngestionRunning = false;
+    }
   }
 
   @override

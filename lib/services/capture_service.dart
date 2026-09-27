@@ -34,13 +34,31 @@ class CaptureService {
 
   Future<String?> stopRecording() => _recorder.stop();
 
-  Future<int> ingestPlatformCaptures() async {
+  Future<int> ingestPlatformCaptures({bool retryOnEmpty = false}) async {
     if (!Platform.isAndroid && !Platform.isIOS) return 0;
     if (Platform.isAndroid) {
       var permission = await Permission.sms.status;
       if (!permission.isGranted) permission = await Permission.sms.request();
       if (!permission.isGranted) return 0;
     }
+
+    const retryDelays = [
+      Duration.zero,
+      Duration(milliseconds: 350),
+      Duration(milliseconds: 900),
+      Duration(milliseconds: 1800),
+    ];
+    final attempts = Platform.isIOS && retryOnEmpty ? retryDelays.length : 1;
+    for (var attempt = 0; attempt < attempts; attempt++) {
+      final delay = retryDelays[attempt];
+      if (delay > Duration.zero) await Future<void>.delayed(delay);
+      final count = await _ingestAvailablePlatformCaptures();
+      if (count > 0) return count;
+    }
+    return 0;
+  }
+
+  Future<int> _ingestAvailablePlatformCaptures() async {
     final messages = await _channel.invokeListMethod<Map<dynamic, dynamic>>(
       'consumePendingSms',
     );

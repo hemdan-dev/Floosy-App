@@ -67,11 +67,6 @@ class _FloosyAppState extends ConsumerState<FloosyApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state != AppLifecycleState.resumed) return;
-    try {
-      await ref.read(captureServiceProvider).ingestPlatformCaptures();
-    } catch (_) {
-      // Shortcut/SMS capture is optional and can be retried on the next resume.
-    }
     final enabled =
         await ref.read(databaseProvider).getSetting('lockEnabled') == 'true';
     if (enabled && mounted) {

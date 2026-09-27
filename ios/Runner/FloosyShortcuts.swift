@@ -3,6 +3,9 @@ import Foundation
 
 @available(iOS 16.0, *)
 struct LogFloosyTransactionIntent: AppIntent {
+  private let appGroup = "group.net.floosy.app"
+  private let captureKey = "floosy_pending_captures"
+
   static var title: LocalizedStringResource = "Log in Floosy"
   static var description = IntentDescription(
     "Save an expense or income note for review in Floosy."
@@ -13,14 +16,20 @@ struct LogFloosyTransactionIntent: AppIntent {
   var transactionText: String
 
   func perform() async throws -> some IntentResult & ProvidesDialog {
-    let key = "floosy_pending_captures"
-    var pending = UserDefaults.standard.array(forKey: key) as? [[String: String]] ?? []
+    let body = transactionText.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !body.isEmpty else {
+      return .result(dialog: "No message content was received.")
+    }
+    guard let defaults = UserDefaults(suiteName: appGroup) else {
+      return .result(dialog: "Floosy could not access its shared capture storage.")
+    }
+    var pending = defaults.array(forKey: captureKey) as? [[String: String]] ?? []
     pending.append([
       "sender": "Apple Shortcuts",
-      "body": transactionText,
+      "body": body,
       "fingerprint": UUID().uuidString,
     ])
-    UserDefaults.standard.set(pending, forKey: key)
+    defaults.set(pending, forKey: captureKey)
     return .result(dialog: "Saved in Floosy for review.")
   }
 }
