@@ -382,11 +382,10 @@ class AppDatabase extends _$AppDatabase {
     ).insert(AppSettingsCompanion.insert(key: 'locale', value: 'en'));
   }
 
-  Stream<List<FinanceTransaction>> watchRecentTransactions({int limit = 100}) {
+  Stream<List<FinanceTransaction>> watchTransactions() {
     final query = select(financeTransactions)
       ..where((t) => t.deletedAt.isNull())
-      ..orderBy([(t) => OrderingTerm.desc(t.occurredAt)])
-      ..limit(limit);
+      ..orderBy([(t) => OrderingTerm.desc(t.occurredAt)]);
     return query.watch();
   }
 
@@ -453,6 +452,8 @@ class AppDatabase extends _$AppDatabase {
       } else if (row.kind == 'transfer') {
         if (row.accountId == accountId) balance -= row.amountMinor;
         if (row.destinationAccountId == accountId) balance += row.amountMinor;
+      } else if (row.kind == 'adjustment' && row.accountId == accountId) {
+        balance += row.amountMinor;
       }
     }
     return balance;

@@ -68,7 +68,7 @@ class ExportService {
 
   Future<File> createPdfSummary() async {
     final summary = await db.dashboardSnapshot();
-    final recent = await db.watchRecentTransactions(limit: 20).first;
+    final recent = (await db.watchTransactions().first).take(20).toList();
     final currency = summary['currency']! as String;
     final document = pw.Document();
     document.addPage(
